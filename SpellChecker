@@ -1,0 +1,125 @@
+package spellcheck;
+
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+/**
+ * Spell checker
+ * @author Igor Blazheevskiy (igor.blazheevskiy[a]gmail.com)
+ * for Samsung R&D 
+ * Test Task
+ */
+public class SpellCheck 
+{
+    public static void main(String[] args) throws IOException 
+    {
+        String input_text=
+                "hte rame in pain fells "+
+                "mainy oon teh lain "+
+                "was hints pliant";
+        String split_text[] = input_text.split(" ");
+        try
+        {
+            Check load = new Check("D:\\dictionary.txt"); // path to 'dictionary'
+            System.out.print("Text: \n"+
+                "hte rame in pain fells "+
+                "mainy oon teh lain "+
+                "was hints pliant \n\n");
+            
+            System.out.print("Text after correction: \n");
+            for(int i=0;i<split_text.length;i++) 
+            {
+                System.out.print(load.checkWord(split_text[i])+" ");
+            }
+            System.out.println();
+        }catch(FileNotFoundException e)
+        {
+            System.out.println(e+"\n File not found. Please, check out path to 'dictionary'");
+        }
+    }
+}
+class Check
+{
+
+    private static String words[],word;
+    private int j=0;
+    private HashMap<Integer,String> dictionary = new HashMap<>();
+    
+    Check(String file)throws IOException
+    {
+        //open dictionary
+        try(BufferedReader load = new BufferedReader(new FileReader(file)))
+        {
+            while(!"===".equals(word=load.readLine()))
+            {
+                words=word.split(" ");//split words from input line (from dictionary) and save it to array 'words'
+                for(int i=0; i<words.length;i++) 
+                {
+                    dictionary.put(j++, words[i]);
+                }
+            }
+        }
+    }
+    private ArrayList<String> edit(String word)
+    {
+        ArrayList<String> res = new ArrayList<>();
+        String t=null;
+        //insert letter
+        for(int i = 0; i<=word.length(); i++) 
+        {
+            for(char l='a'; l<='z'; l++)
+            {
+                res.add(word.substring(0,i)+String.valueOf(l)+word.substring(i));              
+            }
+        }           
+        for(int i = 0; i<word.length(); i++) 
+        {
+            for(char l='a'; l<='z'; l++)
+            {
+                res.add(word.substring(0,i)+String.valueOf(l)+word.substring(i+1));
+            }
+        }
+        //delete letter
+        String[] splitWord = word.split("");
+        for(int i=1;i<splitWord.length;i++)
+            {
+                res.add(word.replaceFirst(splitWord[i], ""));
+            }        
+        //swap letters
+
+        for(int i=0; i<word.length(); i++) 
+        {
+            res.add(word.substring(0,i)+word.substring(i+1));         
+        }
+        for(int i=0; i<word.length()-1; i++) 
+        {
+            res.add(word.substring(0, i) + word.substring(i+1, i+2) + word.substring(i, i+1) + word.substring(i+2));
+        }
+
+
+        return res;
+    }
+    public String checkWord(String word)
+    {
+        ArrayList<String> check = edit(word);
+        if (dictionary.containsValue(word)) 
+        {
+            return word; 
+        }
+        else 
+        {
+            for(String w:check)
+            {
+                if(dictionary.containsValue(w)) 
+                {
+                    return w;
+                }
+            }
+        }
+        return "{"+word+"?}";
+    }    
+}
